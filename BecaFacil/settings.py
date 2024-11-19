@@ -27,8 +27,8 @@ SECRET_KEY = 'django-insecure-zuv2ea09r^&3doz6u(9zg+t%-e*8ut6r(aa%5*a(iw-ry_z9%@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['MauricioChacana.pythonanywhere.com','127.0.0.1']
+LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'index'
 
@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cuentas',
+    'Apps',
 ]
 
 MIDDLEWARE = [
@@ -79,8 +81,12 @@ WSGI_APPLICATION = 'BecaFacil.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'becafacil',
+        'USER': 'Yuyin',
+        'PASSWORD': 'Admision2023',
+        'HOST': 'localhost',  # O la dirección IP de tu servidor MySQL
+        'PORT': '3306',  # El puerto por defecto de MySQL
     }
 }
 
@@ -121,9 +127,12 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# settings.py
+AUTH_USER_MODEL = 'cuentas.CustomUser'
