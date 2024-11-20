@@ -59,7 +59,7 @@
                     <input type="text" id="school-input" placeholder="Escriba el Colegio correctamente o para quitar el filtrado no escriba nada" required>
                     <i class='bx bxs-school'></i>
                 </div>
-
+                
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -72,6 +72,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% csrf_token %}
                         <!-- Datos de la tabla se insertarán aquí -->
                     </tbody>
                 </table>

@@ -2,12 +2,28 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from .models import Cuestionario
 import json
-from django.http import HttpResponse
 from .models import Colegio
 from openpyxl import Workbook
+from django.core.mail import send_mail
+from django.conf import settings
+
+def envio(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        subject = 'BeaFacil - Preoccupacion por bajo rendimiento'
+        message = 'Preocupacion por bajo rendimmiento en el cuestionario, por favor contactar a la brevedad'
+        email_from = settings.EMAIL_HOST_USER
+        recipient_list = [email]
+
+        send_mail(subject, message, email_from, recipient_list)
+
+        return JsonResponse({'status': 'success'})
+
+    return JsonResponse({'status': 'fail'})
+
 
 def completar_colegios(request): 
     if 'term' in request.GET:

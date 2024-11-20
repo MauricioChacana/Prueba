@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import CustomLoginView
 from . import views
-from .views import home_view, authenticated_home_view, guardar,generar_excel_desde_datos, completar_colegios,obtener_datos_cuestionario,generar_excel
+from .views import home_view, authenticated_home_view, guardar,envio,generar_excel_desde_datos, completar_colegios,obtener_datos_cuestionario,generar_excel
 
 
 urlpatterns = [
@@ -13,6 +13,8 @@ urlpatterns = [
     path('obtener-datos-cuestionario/', obtener_datos_cuestionario, name='obtener_datos_cuestionario'),
     path('generar-excel/', generar_excel, name='generar_excel'),
     path('generar-excel-desde-datos/', generar_excel_desde_datos, name='generar_excel_desde_datos'),
+    path('envio/', envio, name='envio'),
+
 
 
 
