@@ -8,7 +8,19 @@
 }
 
 /* Header */
+.low-score {
+    color: red;
+}
 
+.tag-bar {
+    width: 30%; /* Ajusta el tamaño según tus necesidades */
+    margin: 0 auto; /* Centra el gráfico */
+}
+
+#myChart {
+    width: 100% !important;
+    height: auto !important;
+}
 .header {
     position: fixed;
     top: 0;

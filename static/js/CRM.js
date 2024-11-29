@@ -1,6 +1,6 @@
 /*Carga de Json*/
 document.addEventListener('DOMContentLoaded', function() {
-    fetchAndDisplayTable();
+    fetchAndDisplayData();
     /*Funciones de filtrado*/    
     document.querySelectorAll('.tag').forEach(button => {
         button.addEventListener('click', () => {
@@ -37,71 +37,23 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function fetchAndDisplayTable() {
+let myChart; // Variable global para mantener la referencia al gráfico
+
+function fetchAndDisplayData() {
     fetch('/obtener-datos-cuestionario/')
         .then(response => response.json())
         .then(data => {
-            const tbody = document.querySelector('.data-table tbody');
-            tbody.innerHTML = ''; // Limpiar el contenido existente
-            window.tableData = data; // Store data in window.tableData
-            data.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.nombre}</td>
-                    <td>${item.rut}</td>
-                    <td>+56${item.telefono}</td>
-                    <td class="${item.puntaje < 50 ? 'low-score' : ''}">${item.puntaje}%</td>
-                    <td>${item.colegio}</td>
-                    <td><button class="send-email-btn data-email="${item.correo}">Enviar correo</button></td>
-                `;
-                console.log('Table displayed with data:', item.correo);
-                tbody.appendChild(row);
-                
-            
-            });
-
-            console.log('Table displayed with data:', data);
-
-        // añadir funcion de mandar correo
-        
+            window.tableData = data; // Guarda los datos en una variable global
+            displayTable(data);
+            createGraph(data);
         })
         .catch(error => console.error('Error al obtener los datos:', error));
-
 }
 
-
-
-function sortTable(sortType) {
+function displayTable(data) {
     const tbody = document.querySelector('.data-table tbody');
-    const rows = Array.from(tbody.querySelectorAll('tr'));
+    tbody.innerHTML = ''; // Limpia la tabla antes de agregar nuevas filas
 
-    let compareFunction;
-    switch (sortType) {
-        case 'lowScore':
-            compareFunction = (a, b) => parseInt(a.cells[3].innerText) - parseInt(b.cells[3].innerText);
-            break;
-        case 'highScore':
-            compareFunction = (a, b) => parseInt(b.cells[3].innerText) - parseInt(a.cells[3].innerText);
-            break;
-        case 'lowSchool':
-            compareFunction = (a, b) => a.cells[4].innerText.localeCompare(b.cells[44].innerText);
-            break;
-        default:
-            return;
-    }
-
-    rows.sort(compareFunction);
-
-    // Limpiar el contenido existente y añadir las filas ordenadas
-    tbody.innerHTML = '';
-    rows.forEach(row => tbody.appendChild(row));
-}
-
-/*Mostrar la tabla*/
-    
-const displayTable = (data) => {
-    const tbody = document.querySelector('.data-table tbody');
-    tbody.innerHTML = ''; // Limpiar el contenido existente
     data.forEach(item => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -110,26 +62,29 @@ const displayTable = (data) => {
             <td>+56${item.telefono}</td>
             <td class="${item.puntaje < 50 ? 'low-score' : ''}">${item.puntaje}%</td>
             <td>${item.colegio}</td>
-            <td><button type="button" class="send-email-btn" data-email="${item.correo}">Enviar correo</button></td>
+            <td><button class="send-email-btn" data-email="${item.correo}">Enviar correo</button></td>
         `;
         tbody.appendChild(row);
     });
-    console.log('Table displayed with data:', data);
 
-    // añadir funcion de mandar correo
+    // Añadir evento de clic a los botones de enviar correo
     document.querySelectorAll('.send-email-btn').forEach(button => {
         button.addEventListener('click', (event) => {
             const email = event.target.getAttribute('data-email');
-            console.log(`Enviar correo a: ${email}`);
-            sendEmail(email);
+            if (email) {
+                console.log(`Enviar correo a: ${email}`);
+                sendEmail(email);
+            } else {
+                console.error('No se pudo obtener el correo electrónico');
+            }
         });
     });
+
+    console.log('Table displayed with data:', data);
 }
 
-
-//funcion de enviar correo alerta
-const sendEmail = (email) => {
-    fetch('/envio/', {
+function sendEmail(email) {
+    fetch('/send-email-ajax/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -150,29 +105,76 @@ const sendEmail = (email) => {
     .catch(error => console.error('Error:', error));
 }
 
+function createGraph(data) {
+    const totalAlumnos = data.length;
+    const alumnosBajo50 = data.filter(item => item.puntaje < 50).length;
+    const porcentajeBajo50 = (alumnosBajo50 / totalAlumnos) * 100;
+    const porcentajeSobre50 = 100 - porcentajeBajo50;
 
-//funcion de enviar correos a todos los estudiantes con puntaje menor a 50 
-const sendBulkEmails = () => {
-    const emails = window.tableData
-        .filter(item => item.puntaje <= 50)
-        .map(item => item.correo);
-
-    if (emails.length > 0) {
-        alert(`Enviando correos a: ${emails.join(', ')}`);
-        // Aquí puedes agregar la lógica para enviar los correos
-    } else {
-        alert('No hay estudiantes con puntaje de 50 o menos.');
+    // Destruye el gráfico existente si existe
+    if (myChart) {
+        myChart.destroy();
     }
+
+    // Crea el gráfico
+    const ctx = document.getElementById('myChart').getContext('2d');
+    myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Por debajo del 50%', 'Por encima del 50%'],
+            datasets: [{
+                data: [porcentajeBajo50, porcentajeSobre50],
+                backgroundColor: ['#C35138', '#72e31a'],
+                hoverBackgroundColor: ['#C35138', '#72e31a'],
+                color: '#FFFFFF'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: '#FFFFFF' // Cambia el color de las etiquetas de la leyenda
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Porcentaje de alumnos con puntajes por debajo del 50%',
+                    color: '#FFFFFF'
+                }
+            }
+        }
+    });
 }
 
-//filtro de escuelas
+// Función para obtener el token CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Filtro de escuelas
 const filterBySchool = () => {
     const schoolInput = document.getElementById('school-input').value.toLowerCase();
     if (schoolInput === '') {
         displayTable(window.tableData); // Muestra todos los datos si no hay nada escrito
+        createGraph(window.tableData); // Actualiza el gráfico
     } else {
         const filteredData = window.tableData.filter(item => item.colegio.toLowerCase() === schoolInput);
-        displayTable(filteredData);
+        displayTable(filteredData); // Muestra los datos filtrados
+        createGraph(filteredData); // Actualiza el gráfico
     }
     console.log('Table filtered by school:', schoolInput);
 }
@@ -197,36 +199,13 @@ function generarExcelDesdeDatos() {
         },
         body: JSON.stringify(data)
     })
-    .then(response => {
-        if (response.ok) {
-            return response.blob();
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Excel generado con éxito');
         } else {
-            throw new Error('Error al generar el archivo Excel');
+            alert('Error al generar el Excel');
         }
-    })
-    .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'ReporteBecaFacil.xlsx';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
     })
     .catch(error => console.error('Error:', error));
-}
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
 }

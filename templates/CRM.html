@@ -14,6 +14,7 @@
             background: url("{% static 'images/fondoLogin.jpg' %}") no-repeat center center fixed;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
 
@@ -59,7 +60,12 @@
                     <input type="text" id="school-input" placeholder="Escriba el Colegio correctamente o para quitar el filtrado no escriba nada" required>
                     <i class='bx bxs-school'></i>
                 </div>
-                
+
+                <div class="tag-bar">
+                    <!-- Aquí va el gráfico -->
+                    <canvas id="myChart"></canvas>
+                </div>
+
                 <table class="data-table">
                     <thead>
                         <tr>
